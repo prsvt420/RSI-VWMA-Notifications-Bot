@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "rsi-vwma-notifications-bot"
+version = "0.1.0"
+description = ""
+authors = ["Denis Tokarev <wf.denis.tokarev@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+numpy = "^1.26.4"
+ta-lib = {path = "C:/Users/admin/TA_Lib-0.4.28-cp311-cp311-win_amd64.whl"}
+aiohttp = "^3.9.5"
+python-dotenv = "^1.0.1"
+aiogram = "^3.7.0"
+sqlalchemy = "^2.0.30"
+aiosqlite = "^0.20.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
