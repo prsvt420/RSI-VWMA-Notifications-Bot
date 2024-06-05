@@ -1,9 +1,9 @@
 import asyncio
 import logging
 
-from aiogram import Bot, Dispatcher
+from aiogram import Bot, Dispatcher, Router
 
-from bot.handlers import start_handler
+from bot.handlers import setup_routers
 from bot.middlewares import setup_middlewares
 from config import BOT_TOKEN
 
@@ -14,9 +14,9 @@ async def main() -> None:
 
     setup_middlewares(dispatcher)
 
-    dispatcher.include_routers(
-        start_handler.router
-    )
+    main_router: Router = setup_routers()
+
+    dispatcher.include_router(router=main_router)
 
     dispatcher_task = asyncio.create_task(dispatcher.start_polling(bot))
 

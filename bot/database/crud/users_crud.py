@@ -9,6 +9,11 @@ async def is_user_registered(telegram_id: int) -> bool:
         return bool(await async_session.scalar(select(Users).where(Users.telegram_id == telegram_id)))
 
 
+async def select_user_by_telegram_id(telegram_id: int) -> Users:
+    async with async_session_factory() as async_session:
+        return await async_session.scalar(select(Users).where(Users.telegram_id == telegram_id))
+
+
 async def insert_user(telegram_id: int) -> None:
     async with async_session_factory() as async_session:
         user: Users = Users(telegram_id=telegram_id, is_subscribed=0, is_superuser=0)

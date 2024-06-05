@@ -1,5 +1,7 @@
+from datetime import datetime
 from typing import Annotated
 
+from sqlalchemy import ForeignKey
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -20,3 +22,14 @@ class Users(Base):
 
     def __str__(self):
         return f'{self.telegram_id}'
+
+
+class Subscriptions(Base):
+    __tablename__ = 'subscriptions'
+
+    id: Mapped[int_pk]
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
+    subscription_end_datetime: Mapped[datetime]
+
+    def __str__(self):
+        return f"{self.user_id} - {self.subscription_end_datetime}"
