@@ -17,7 +17,7 @@ class Users(Base):
 
     id: Mapped[int_pk]
     telegram_id: Mapped[int] = mapped_column(unique=True)
-    is_subscribed: Mapped[bool]
+    is_notifications_enabled: Mapped[bool]
     is_superuser: Mapped[bool]
 
     def __str__(self):
@@ -33,3 +33,28 @@ class Subscriptions(Base):
 
     def __str__(self):
         return f"{self.user_id} - {self.subscription_end_datetime}"
+
+
+class NotificationsUser(Base):
+    __tablename__ = 'notifications_user'
+
+    id: Mapped[int_pk]
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
+    notification_id: Mapped[int] = mapped_column(ForeignKey('notifications.id'))
+    is_active: Mapped[bool]
+
+    def __str__(self):
+        return f'{self.user_id} - {self.notification_id}'
+
+
+class Notifications(Base):
+    __tablename__ = 'notifications'
+
+    id: Mapped[int_pk]
+    symbol: Mapped[str]
+    interval: Mapped[str]
+    rsi_period: Mapped[int] = mapped_column(default=7)
+    ma_period: Mapped[int] = mapped_column(default=7)
+
+    def __str__(self):
+        return f'{self.symbol} - {self.interval} - {self.rsi_period} - {self.ma_period}'

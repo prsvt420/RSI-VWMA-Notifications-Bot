@@ -13,5 +13,5 @@ async def cmd_start(message: Message) -> None:
 
 
 @router.callback_query(F.data == 'main_menu')
-async def start_menu(callback: CallbackQuery) -> None:
+async def main_menu(callback: CallbackQuery) -> None:
     await callback.message.edit_text(f'Меню\U0001F4DC', reply_markup=start_keyboards.main_menu_inline_keyboard)
