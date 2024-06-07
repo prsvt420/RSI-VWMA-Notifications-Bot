@@ -14,7 +14,7 @@ from bot.database.models import Users, Notifications, NotificationsUser
 from bot.filters.subscription_filter import IsUserSubscribed
 from bot.keyboards import notifications_keyboards
 from bot.keyboards.notifications_keyboards import create_buttons_for_notifications_user, \
-    add_more_keyboard
+    add_more_inline_keyboard
 from bot.utils.notifications_utils import get_interval_text, \
     is_valid_notification_data, interval_is_russian, convert_rus_interval_to_en
 
@@ -28,7 +28,7 @@ class Notification(StatesGroup):
 @router.callback_query(F.data == 'notifications_menu', IsUserSubscribed())
 async def notifications_menu(callback: CallbackQuery) -> None:
     await callback.message.edit_text(
-        text='Меню уведомлений\U0001F9FE', reply_markup=notifications_keyboards.notifications_menu_keyboard
+        text='Меню уведомлений\U0001F9FE', reply_markup=notifications_keyboards.notifications_menu_inline_keyboard
     )
 
 
@@ -36,7 +36,7 @@ async def notifications_menu(callback: CallbackQuery) -> None:
 async def notifications_settings(callback: CallbackQuery) -> None:
     await callback.message.edit_text(
         text='Настройки уведомлений\U0001F514',
-        reply_markup=notifications_keyboards.notifications_settings_menu_keyboard
+        reply_markup=notifications_keyboards.notifications_settings_menu_inline_keyboard
     )
 
 
@@ -46,7 +46,8 @@ async def process_notifications_status_change(callback, status) -> None:
     await update_notifications_status(user.id, status)
     status_text = 'выключены\U0001F515' if not status else 'включены\U0001F514'
     await callback.message.edit_text(
-        text=f'Уведомления {status_text}', reply_markup=notifications_keyboards.back_to_notifications_settings_keyboard
+        text=f'Уведомления {status_text}',
+        reply_markup=notifications_keyboards.back_to_notifications_settings_inline_keyboard
     )
 
 
@@ -109,7 +110,7 @@ async def user_notifications_list_next(callback: CallbackQuery) -> None:
 async def button_notification_select(callback: CallbackQuery) -> None:
     await callback.message.edit_text(
         text=f'Настройка уведомления {int(callback.data) + 1}\U00002699',
-        reply_markup=notifications_keyboards.notification_settings_menu
+        reply_markup=notifications_keyboards.notification_settings_inline_menu
     )
 
 
@@ -174,10 +175,10 @@ async def notification_data(message: Message, state: FSMContext) -> None:
         await insert_notification_user(user.id, notification_id)
         await message.reply(
             text=f'Уведомление добавлено\U00002705',
-            reply_markup=add_more_keyboard
+            reply_markup=add_more_inline_keyboard
         )
     else:
         await message.reply(
             text=f'Такое уведомление уже добавлено\U0000274C',
-            reply_markup=add_more_keyboard
+            reply_markup=add_more_inline_keyboard
         )

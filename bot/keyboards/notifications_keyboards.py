@@ -2,7 +2,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from bot.database.models import NotificationsUser
 
-notifications_menu_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+notifications_menu_inline_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Настройки уведомлений\U0001F514', callback_data='notifications_settings')],
     [InlineKeyboardButton(
         text='Список ваших уведомлений\U0001F4DD', callback_data='notifications_list'
@@ -11,26 +11,26 @@ notifications_menu_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Назад\U0001F519', callback_data='main_menu')],
 ])
 
-notifications_settings_menu_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+notifications_settings_menu_inline_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Включить уведомления\U0001F514', callback_data='notifications_on')],
     [InlineKeyboardButton(text='Выключить уведомления\U0001F515', callback_data='notifications_off')],
     [InlineKeyboardButton(text='Назад\U0001F519', callback_data='notifications_menu')],
 ])
 
-back_to_notifications_settings_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+back_to_notifications_settings_inline_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Назад\U0001F519', callback_data='notifications_settings')],
 ])
 
-back_to_notifications_menu_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+back_to_notifications_menu_inline_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Назад\U0001F519', callback_data='notifications_menu')],
 ])
 
-add_more_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+add_more_inline_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Добавить еще', callback_data='add_new_notification')],
     [InlineKeyboardButton(text='Назад\U0001F519', callback_data='notifications_menu')],
 ])
 
-notification_settings_menu = InlineKeyboardMarkup(inline_keyboard=[
+notification_settings_inline_menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Включить уведомление\U0001F514', callback_data='notification_on')],
     [InlineKeyboardButton(text='Выключить уведомление\U0001F515', callback_data='notification_off')],
     [InlineKeyboardButton(text='Назад\U0001F519', callback_data='notifications_list')],

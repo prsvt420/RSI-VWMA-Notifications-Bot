@@ -1,5 +1,5 @@
 from aiogram import Router
-from . import start_handlers, subscription_handlers, notifications_handlers
+from . import start_handlers, subscription_handlers, notifications_handlers, admin_handlers
 
 
 def setup_routers() -> Router:
@@ -9,5 +9,6 @@ def setup_routers() -> Router:
         start_handlers.router,
         subscription_handlers.router,
         notifications_handlers.router,
+        admin_handlers.router
     )
     return main_router

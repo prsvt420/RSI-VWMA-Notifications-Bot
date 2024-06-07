@@ -20,4 +20,4 @@ async def subscribe_menu(callback: CallbackQuery) -> None:
     else:
         message: str = 'Подписка не активна\U0000274C'
 
-    await callback.message.edit_text(message, reply_markup=subscription_keyboards.subscription_menu_keyboard)
+    await callback.message.edit_text(message, reply_markup=subscription_keyboards.subscription_menu_inline_keyboard)
