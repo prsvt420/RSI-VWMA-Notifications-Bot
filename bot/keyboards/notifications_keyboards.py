@@ -30,7 +30,7 @@ add_more_inline_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Назад\U0001F519', callback_data='notifications_menu')],
 ])
 
-notification_settings_inline_menu = InlineKeyboardMarkup(inline_keyboard=[
+notification_settings_inline_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Включить уведомление\U0001F514', callback_data='notification_on')],
     [InlineKeyboardButton(text='Выключить уведомление\U0001F515', callback_data='notification_off')],
     [InlineKeyboardButton(text='Назад\U0001F519', callback_data='notifications_list')],
@@ -42,15 +42,18 @@ async def create_buttons_for_notifications_user(
         total_pages: int,
         start_index: int,
         notifications_user: list[NotificationsUser]) -> InlineKeyboardMarkup:
-    inline_keyboard = []
-    row = []
+    inline_keyboard: list[list[InlineKeyboardButton]] = []
+    row: list[InlineKeyboardButton] = []
+
     for index, notification in enumerate(notifications_user):
-        actual_index = start_index + index
-        inline_keyboard_button = InlineKeyboardButton(text=str(actual_index + 1), callback_data=str(actual_index))
+        actual_index: int = start_index + index
+        inline_keyboard_button: InlineKeyboardButton = InlineKeyboardButton(
+            text=str(actual_index + 1), callback_data=str(actual_index)
+        )
         row.append(inline_keyboard_button)
         if len(row) == 4:
             inline_keyboard.append(row)
-            row = []
+            row: list[InlineKeyboardButton] = []
 
     if row:
         while len(row) < 4:
@@ -59,7 +62,7 @@ async def create_buttons_for_notifications_user(
 
     await create_pagination_buttons(inline_keyboard, page, total_pages)
     inline_keyboard.append([InlineKeyboardButton(text='Назад\U0001F519', callback_data='notifications_menu')])
-    reply_keyboard_markup = InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
+    reply_keyboard_markup: InlineKeyboardMarkup = InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
     return reply_keyboard_markup
 
 
@@ -74,13 +77,13 @@ async def create_pagination_buttons(inline_keyboard, page, total_pages) -> None:
             InlineKeyboardButton(text=' ', callback_data=' ')
         ])
     else:
-        buttons = [
-            InlineKeyboardButton(text='←', callback_data=f'user_notifications_list_prev?page={page}'),
+        buttons: list[InlineKeyboardButton] = [
+            InlineKeyboardButton(text='←', callback_data=f'notifications_list_prev?page={page}'),
             InlineKeyboardButton(
                 text=f'{page}/{total_pages}',
                 callback_data=f'user_notifications_list?page={page}'
             ),
-            InlineKeyboardButton(text='→', callback_data=f'user_notifications_list_next?page={page}')
+            InlineKeyboardButton(text='→', callback_data=f'notifications_list_next?page={page}')
         ]
         if page == 1:
             buttons[0] = InlineKeyboardButton(text=' ', callback_data=' ')

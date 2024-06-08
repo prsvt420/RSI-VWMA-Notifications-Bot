@@ -40,11 +40,11 @@ async def notifications_settings(callback: CallbackQuery) -> None:
     )
 
 
-async def process_notifications_status_change(callback, status) -> None:
+async def process_notifications_status_change(callback: CallbackQuery, status: bool) -> None:
     telegram_id: int = callback.from_user.id
     user: Users = await select_user_by_telegram_id(telegram_id)
     await update_notifications_status(user.id, status)
-    status_text = 'выключены\U0001F515' if not status else 'включены\U0001F514'
+    status_text: str = 'выключены\U0001F515' if not status else 'включены\U0001F514'
     await callback.message.edit_text(
         text=f'Уведомления {status_text}',
         reply_markup=notifications_keyboards.back_to_notifications_settings_inline_keyboard
@@ -62,7 +62,7 @@ async def notifications_off(callback: CallbackQuery) -> None:
 
 
 @router.callback_query(F.data.startswith('notifications_list'), IsUserSubscribed())
-async def notifications_list(callback: CallbackQuery, page: int = 1, per_page: int = 5) -> None:
+async def notifications_list(callback: CallbackQuery, page: int = 1, per_page: int = 48) -> None:
     telegram_id: int = callback.from_user.id
     user: Users = await select_user_by_telegram_id(telegram_id)
     user_id: int = user.id
@@ -84,8 +84,8 @@ async def notifications_list(callback: CallbackQuery, page: int = 1, per_page: i
 
     for index, notification_user in enumerate(paginated_notifications_user):
         notification: Notifications = await select_notification_by_id(notification_user.notification_id)
-        text_interval = await get_interval_text(notification.interval, 'ru')
-        status = '\U00002705' if notification_user.is_active else '\U0000274C'
+        text_interval: str = await get_interval_text(notification.interval, 'ru')
+        status: str = '\U00002705' if notification_user.is_active else '\U0000274C'
         text += (f'{start_index + index + 1}. '
                  f'{status} '
                  f'{notification.symbol} '
@@ -94,15 +94,15 @@ async def notifications_list(callback: CallbackQuery, page: int = 1, per_page: i
     await callback.message.edit_text(text=text, reply_markup=notifications_buttons, parse_mode='html')
 
 
-@router.callback_query(F.data.startswith('user_notifications_list_prev'), IsUserSubscribed())
-async def user_notifications_list_prev(callback: CallbackQuery) -> None:
-    page = int(callback.data.split('?page=')[-1]) - 1
+@router.callback_query(F.data.startswith('notifications_list_prev'), IsUserSubscribed())
+async def notifications_list_prev(callback: CallbackQuery) -> None:
+    page: int = int(callback.data.split('?page=')[-1]) - 1
     await notifications_list(callback, page)
 
 
-@router.callback_query(F.data.startswith('user_notifications_list_next'), IsUserSubscribed())
-async def user_notifications_list_next(callback: CallbackQuery) -> None:
-    page = int(callback.data.split('?page=')[-1]) + 1
+@router.callback_query(F.data.startswith('notifications_list_next'), IsUserSubscribed())
+async def notifications_list_next(callback: CallbackQuery) -> None:
+    page: int = int(callback.data.split('?page=')[-1]) + 1
     await notifications_list(callback, page)
 
 
@@ -110,11 +110,11 @@ async def user_notifications_list_next(callback: CallbackQuery) -> None:
 async def button_notification_select(callback: CallbackQuery) -> None:
     await callback.message.edit_text(
         text=f'Настройка уведомления {int(callback.data) + 1}\U00002699',
-        reply_markup=notifications_keyboards.notification_settings_inline_menu
+        reply_markup=notifications_keyboards.notification_settings_inline_keyboard
     )
 
 
-async def process_notification_status_change(callback, status):
+async def process_notification_status_change(callback: CallbackQuery, status: bool) -> None:
     message_text: str = callback.message.text
     index = int(message_text.split()[2].strip('⚙')) - 1
     telegram_id: int = callback.from_user.id
@@ -160,7 +160,7 @@ async def notification_data(message: Message, state: FSMContext) -> None:
     symbol, interval = symbol.strip().upper(), interval.strip()
 
     if await interval_is_russian(interval):
-        interval = await convert_rus_interval_to_en(interval)
+        interval: str = await convert_rus_interval_to_en(interval)
 
     await state.update_data(notification_data={'symbol': symbol, 'interval': interval})
     await state.clear()

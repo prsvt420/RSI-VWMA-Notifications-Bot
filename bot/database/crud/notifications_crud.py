@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, Result
 
 from bot.database.engine import async_session_factory
 from bot.database.models import Notifications, NotificationsUser
@@ -35,13 +35,13 @@ async def select_notification(symbol: str, interval: str) -> Notifications:
 
 async def select_notifications() -> list[Notifications]:
     async with async_session_factory() as async_session:
-        notifications = await async_session.execute(select(Notifications))
+        notifications: Result[tuple[Notifications]] = await async_session.execute(select(Notifications))
     return list(notifications.scalars().all())
 
 
 async def select_notifications_user_by_id(user_id: int) -> list[NotificationsUser]:
     async with async_session_factory() as async_session:
-        notifications = await async_session.execute(
+        notifications: Result[tuple[NotificationsUser]] = await async_session.execute(
             select(NotificationsUser)
             .where(NotificationsUser.user_id == user_id)
         )

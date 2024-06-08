@@ -31,6 +31,8 @@ async def insert_subscription(user_id: int, subscription_end_datetime: datetime)
 
 async def update_subscription(user_id: int, subscription_end_datetime: datetime) -> None:
     async with async_session_factory() as async_session:
-        subscription = await async_session.scalar(select(Subscriptions).where(Subscriptions.user_id == user_id))
+        subscription: Subscriptions = await async_session.scalar(
+            select(Subscriptions).where(Subscriptions.user_id == user_id)
+        )
         subscription.subscription_end_datetime = subscription_end_datetime
         await async_session.commit()

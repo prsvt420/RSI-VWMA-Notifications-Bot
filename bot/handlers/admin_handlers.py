@@ -1,12 +1,15 @@
+import logging
 from datetime import datetime
 
+import aiofiles
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, Message, FSInputFile
 
-from bot.database.crud.subscription_crud import update_subscription
-from bot.database.crud.users_crud import is_user_registered, select_user_by_telegram_id
+from bot.database.crud.subscription_crud import update_subscription, select_subscription_by_user_id
+from bot.database.crud.users_crud import is_user_registered, select_user_by_telegram_id, select_all_users
+from bot.database.models import Users, Subscriptions
 from bot.keyboards import admin_keyboards
 from bot.utils.admin_utils import is_valid_datetime
 
@@ -26,7 +29,7 @@ async def admin_menu(callback: CallbackQuery) -> None:
 @router.callback_query(F.data == 'extend_subscription')
 async def extend_subscription(callback: CallbackQuery, state: FSMContext) -> None:
     await state.set_state(Subscription.telegram_id)
-    await callback.message.edit_text(f'Введите telegram id пользователя')
+    await callback.message.reply(f'Введите telegram id пользователя')
 
 
 @router.message(Subscription.telegram_id)
@@ -71,4 +74,25 @@ async def extend_subscription(message: Message, state: FSMContext) -> None:
         f'Подписка пользователя с telegram id {telegram_id} будет продлена до {new_datetime}',
         reply_markup=admin_keyboards.back_to_admin_menu_inline_keyboard
     )
+
+    logging.info(f'{telegram_id} extended subscription to {new_datetime}')
+
     await state.clear()
+
+
+@router.callback_query(F.data == 'get_list_users___')
+async def get_list_users(callback: CallbackQuery) -> None:
+    users: list[Users] = await select_all_users()
+
+    async with aiofiles.open('logs/users.log', 'w') as f:
+        await f.write('telegram id'.ljust(21) + 'subscription end datetime\n\n')
+        for user in users:
+            subscription: Subscriptions = await select_subscription_by_user_id(user.id)
+
+            telegram_id: str = str(user.telegram_id).ljust(20)
+            subscription_end_datetime: str = str(subscription.subscription_end_datetime).ljust(30)
+            await f.write(f'{telegram_id} {subscription_end_datetime}\n')
+
+    await callback.message.reply_document(
+        FSInputFile('logs/users.log', filename='users.log'),
+    )

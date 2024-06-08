@@ -15,7 +15,7 @@ async def subscribe_menu(callback: CallbackQuery) -> None:
 
     if await is_user_subscribed(user.id):
         subscribed: Subscriptions = await select_subscription_by_user_id(user.id)
-        subscription_end_datetime = subscribed.subscription_end_datetime.strftime('%d-%m-%Y %H:%M:%S')
+        subscription_end_datetime: str = subscribed.subscription_end_datetime.strftime('%d-%m-%Y %H:%M:%S')
         message: str = f'Подписка активна\U0001F48E\nОкончание подписки: {subscription_end_datetime}\U0000231B'
     else:
         message: str = 'Подписка не активна\U0000274C'

@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 
 import numpy as np
@@ -31,20 +32,20 @@ async def handle_notifications(bot: Bot) -> None:
 
 async def send_notification_to_users(bot: Bot, users: list[Users], notification: Notifications) -> None:
     for user in users:
-        user_telegram_id = user.telegram_id
-        symbol = notification.symbol
-        interval = notification.interval
-        rsi_period = notification.rsi_period
-        ma_period = notification.ma_period
+        user_telegram_id: int = user.telegram_id
+        symbol: str = notification.symbol
+        interval: str = notification.interval
+        rsi_period: int = notification.rsi_period
+        ma_period: int = notification.ma_period
 
-        klines = await get_klines(symbol, interval, 200)
-        close_prices = await get_close_prices(klines)
-        volumes = await get_volumes(klines)
-        rsi = await get_rsi(close_prices, rsi_period)
-        rsi_vwma = await get_rsi_vwma(rsi, volumes, ma_period)
-        crossing_status = await check_crossing(rsi, rsi_vwma)
+        klines: list[list[str]] = await get_klines(symbol, interval, 200)
+        close_prices: np.ndarray = await get_close_prices(klines)
+        volumes: np.ndarray = await get_volumes(klines)
+        rsi: np.ndarray = await get_rsi(close_prices, rsi_period)
+        rsi_vwma: np.ndarray = await get_rsi_vwma(rsi, volumes, ma_period)
+        crossing_status: Optional[str] = await check_crossing(rsi, rsi_vwma)
 
-        notification_data = (user_telegram_id, interval, symbol, rsi_period, ma_period, crossing_status)
+        notification_data: tuple = (user_telegram_id, interval, symbol, rsi_period, ma_period, crossing_status)
 
         if crossing_status and notification_data not in storage_sent_notifications:
             message: str = await create_message(symbol, interval, crossing_status, rsi)
@@ -56,11 +57,11 @@ async def send_message_to_user(bot: Bot, user_telegram_id: int, message: str) ->
     try:
         await bot.send_message(user_telegram_id, message, parse_mode='html')
     except Exception as e:
-        print(e)
+        logging.error(e)
 
 
 async def get_klines(symbol: str, interval: str, limit: int) -> list[list[str]]:
-    params = {
+    params: dict = {
         'symbol': symbol,
         'interval': interval,
         'limit': limit
@@ -72,7 +73,7 @@ async def get_klines(symbol: str, interval: str, limit: int) -> list[list[str]]:
 
 
 async def get_price_symbol(symbol: str) -> str:
-    url = f'https://api.binance.com/api/v3/ticker/price?symbol={symbol}'
+    url: str = f'https://api.binance.com/api/v3/ticker/price?symbol={symbol}'
 
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
@@ -93,11 +94,11 @@ async def get_rsi(close_prices: np.ndarray, rsi_period: int) -> np.ndarray:
 
 
 async def get_rsi_vwma(rsi: np.ndarray, volumes: np.ndarray, ma_period: int) -> np.ndarray:
-    rsi_vwma = np.full_like(rsi, np.nan)
+    rsi_vwma: np.ndarray = np.full_like(rsi, np.nan)
     for i in range(ma_period - 1, len(rsi)):
-        sum_rsi_vol = np.sum(rsi[i - ma_period + 1:i + 1] * volumes[i - ma_period + 1:i + 1])
-        sum_vol = np.sum(volumes[i - ma_period + 1:i + 1])
-        rsi_vwma[i] = sum_rsi_vol / sum_vol
+        sum_rsi_vol: np.array = np.sum(rsi[i - ma_period + 1:i + 1] * volumes[i - ma_period + 1:i + 1])
+        sum_vol: np.array = np.sum(volumes[i - ma_period + 1:i + 1])
+        rsi_vwma[i]: np.array = sum_rsi_vol / sum_vol
 
     return rsi_vwma
 

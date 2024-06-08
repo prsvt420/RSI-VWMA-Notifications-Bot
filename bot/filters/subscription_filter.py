@@ -19,6 +19,6 @@ class IsUserSubscribed(BaseFilter):
 
         await callback.message.edit_text(
             'У вас нет подписки на уведомления!',
-            reply_markup=subscription_keyboards.subscription_menu_keyboard)
+            reply_markup=subscription_keyboards.subscription_menu_inline_keyboard)
 
         return False

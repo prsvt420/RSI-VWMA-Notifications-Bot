@@ -19,6 +19,7 @@ class RegistrationMiddleware(BaseMiddleware):
 
         if not await is_user_registered(telegram_id):
             await insert_user(telegram_id)
-            logging.info(f'User - {telegram_id} registered')
+
+            logging.info(f'{telegram_id} registered')
 
         return await handler(event, data)
