@@ -72,18 +72,18 @@ async def create_pagination_buttons(inline_keyboard, page, total_pages) -> None:
             InlineKeyboardButton(text=' ', callback_data=' '),
             InlineKeyboardButton(
                 text=f'{page}/{total_pages}',
-                callback_data=f'user_notifications_list?page={page}'
+                callback_data=f'notifications_list?page={page}'
             ),
             InlineKeyboardButton(text=' ', callback_data=' ')
         ])
     else:
         buttons: list[InlineKeyboardButton] = [
-            InlineKeyboardButton(text='←', callback_data=f'notifications_list_prev?page={page}'),
+            InlineKeyboardButton(text='←', callback_data=f'page_notifications_list_prev?page={page}'),
             InlineKeyboardButton(
                 text=f'{page}/{total_pages}',
                 callback_data=f'user_notifications_list?page={page}'
             ),
-            InlineKeyboardButton(text='→', callback_data=f'notifications_list_next?page={page}')
+            InlineKeyboardButton(text='→', callback_data=f'page_notifications_list_next?page={page}')
         ]
         if page == 1:
             buttons[0] = InlineKeyboardButton(text=' ', callback_data=' ')

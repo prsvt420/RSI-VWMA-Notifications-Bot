@@ -69,6 +69,11 @@ async def notifications_list(callback: CallbackQuery, page: int = 1, per_page: i
 
     notifications_user: list[NotificationsUser] = await select_notifications_user_by_id(user_id)
 
+    if not notifications_user:
+        await callback.message.edit_text(text='У вас нет уведомлений', reply_markup=notifications_keyboards.
+                                         back_to_notifications_menu_inline_keyboard)
+        return
+
     total_pages: int = math.ceil(len(notifications_user) / per_page)
     start_index: int = (page - 1) * per_page
     end_index: int = start_index + per_page
@@ -94,13 +99,13 @@ async def notifications_list(callback: CallbackQuery, page: int = 1, per_page: i
     await callback.message.edit_text(text=text, reply_markup=notifications_buttons, parse_mode='html')
 
 
-@router.callback_query(F.data.startswith('notifications_list_prev'), IsUserSubscribed())
+@router.callback_query(F.data.startswith('page_notifications_list_prev'), IsUserSubscribed())
 async def notifications_list_prev(callback: CallbackQuery) -> None:
     page: int = int(callback.data.split('?page=')[-1]) - 1
     await notifications_list(callback, page)
 
 
-@router.callback_query(F.data.startswith('notifications_list_next'), IsUserSubscribed())
+@router.callback_query(F.data.startswith('page_notifications_list_next'), IsUserSubscribed())
 async def notifications_list_next(callback: CallbackQuery) -> None:
     page: int = int(callback.data.split('?page=')[-1]) + 1
     await notifications_list(callback, page)
