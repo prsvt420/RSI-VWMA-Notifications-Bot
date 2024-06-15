@@ -15,6 +15,14 @@ from bot.database.models import Notifications, Users
 from bot.utils.notifications_utils import get_interval_text
 
 
+class CrossingStatus:
+    def __init__(self, status: str) -> None:
+        self.status: str = status
+
+    def __abs__(self) -> str:
+        return 'SELL' if self.status == 'BUY' else 'BUY'
+
+
 async def handle_notifications(bot: Bot) -> None:
     while True:
         notifications: list[Notifications] = await select_notifications()
@@ -39,21 +47,31 @@ async def send_notification_to_users(bot: Bot, users: list[Users], notification:
         ma_period: int = notification.ma_period
 
         klines: list[list[str]] = await get_klines(symbol, interval, 200)
-
         close_prices: np.ndarray = await get_close_prices(klines)
         volumes: np.ndarray = await get_volumes(klines)
         rsi: np.ndarray = await get_rsi(close_prices, rsi_period)
         rsi_vwma: np.ndarray = await get_rsi_vwma(rsi, volumes, ma_period)
-        crossing_status: Optional[str] = await check_crossing(rsi, rsi_vwma)
 
-        print(symbol, interval, rsi[-1], rsi_vwma[-1], crossing_status)
+        crossing_status: Optional[CrossingStatus] = await check_crossing(rsi, rsi_vwma)
 
-        if crossing_status:
-            redis_key = f'{user_telegram_id}:{interval}:{symbol}:{rsi_period}:{ma_period}:{crossing_status}'
-            if not await aioredis.exists(redis_key):
-                message: str = await create_message(symbol, interval, crossing_status, rsi)
-                await send_message_to_user(bot, user_telegram_id, message)
-                await aioredis.set(redis_key, 1, ex=180)
+        if crossing_status is None:
+            continue
+
+        redis_key: str = f'{user_telegram_id}:{interval}:{symbol}:{rsi_period}:{ma_period}:{crossing_status.status}'
+        abs_redis_key: str = f'{user_telegram_id}:{interval}:{symbol}:{rsi_period}:{ma_period}:{abs(crossing_status)}'
+        redis_key_exists: bool = await aioredis.exists(redis_key)
+        abs_redis_key_exists: bool = await aioredis.exists(abs_redis_key)
+
+        if not redis_key_exists and not abs_redis_key_exists:
+            message: str = await create_message(symbol, interval, crossing_status.status, rsi)
+            await send_message_to_user(bot, user_telegram_id, message)
+            await aioredis.set(redis_key, 1)
+
+        if not redis_key_exists and abs_redis_key_exists:
+            message: str = await create_message(symbol, interval, crossing_status.status, rsi)
+            await send_message_to_user(bot, user_telegram_id, message)
+            await aioredis.set(redis_key, 1)
+            await aioredis.delete(abs_redis_key)
 
     await aioredis.close()
 
@@ -108,18 +126,38 @@ async def get_rsi_vwma(rsi: np.ndarray, volumes: np.ndarray, ma_period: int) -> 
     return rsi_vwma
 
 
-async def check_crossing(rsi: np.ndarray, rsi_vwma: np.ndarray) -> Optional[str]:
-    if (rsi[-2] < rsi_vwma[-2] and rsi[-1] > rsi_vwma[-1]) and (rsi[-1] - rsi_vwma[-1] < 1):
-        return 'BUY'
-    elif (rsi[-2] > rsi_vwma[-2] and rsi[-1] < rsi_vwma[-1]) and (rsi_vwma[-1] - rsi[-1] < 1):
-        return 'SELL'
+async def check_crossing(rsi: np.ndarray, rsi_vwma: np.ndarray) -> Optional[CrossingStatus]:
+    if len(rsi) < 2 or len(rsi_vwma) < 2:
+        return None
+
+    if rsi[-2] < rsi_vwma[-2] and rsi[-1] > rsi_vwma[-1]:
+        x1, y1 = len(rsi) - 2, rsi[-2]
+        x2, y2 = len(rsi) - 1, rsi[-1]
+        x1_vwma, y1_vwma = len(rsi_vwma) - 2, rsi_vwma[-2]
+        x2_vwma, y2_vwma = len(rsi_vwma) - 1, rsi_vwma[-1]
+
+        a1 = (y2 - y1) / (x2 - x1)
+        a2 = (y2_vwma - y1_vwma) / (x2_vwma - x1_vwma)
+
+        if a1 != a2:
+            return CrossingStatus('BUY')
+
+    elif rsi[-2] > rsi_vwma[-2] and rsi[-1] < rsi_vwma[-1]:
+        x1, y1 = len(rsi) - 2, rsi[-2]
+        x2, y2 = len(rsi) - 1, rsi[-1]
+        x1_vwma, y1_vwma = len(rsi_vwma) - 2, rsi_vwma[-2]
+        x2_vwma, y2_vwma = len(rsi_vwma) - 1, rsi_vwma[-1]
+
+        a1 = (y2 - y1) / (x2 - x1)
+        a2 = (y2_vwma - y1_vwma) / (x2_vwma - x1_vwma)
+
+        if a1 != a2:
+            return CrossingStatus('SELL')
+
+    return None
 
 
-async def create_message(
-        symbol: str,
-        interval: str,
-        crossing_status: str,
-        rsi: np.ndarray) -> str:
+async def create_message(symbol: str, interval: str, crossing_status: str, rsi: np.ndarray) -> str:
     rsi: float = round(float(rsi[-1]), 2)
     status_emoji: str = '\U0001F7E2' if crossing_status == 'BUY' else '\U0001F534'
     symbol: str = f'{symbol}'

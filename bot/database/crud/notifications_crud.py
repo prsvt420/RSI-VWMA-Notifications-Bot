@@ -77,8 +77,8 @@ async def select_user_notifications_by_id(user_id: int) -> list[Notifications]:
 async def insert_notification(
         symbol: str,
         interval: str,
-        rsi_period: int = 7,
-        ma_period: int = 7) -> None:
+        rsi_period: int = 6,
+        ma_period: int = 4) -> None:
     async with async_session_factory() as async_session:
         notification: Notifications = Notifications(
             symbol=symbol,
